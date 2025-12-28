@@ -47,11 +47,28 @@ services:
       REFRESH_TOKEN_EXPIRES_IN: ${REFRESH_TOKEN_EXPIRES_IN:-30d}
       API_BASE_URL: http://localhost:3001
       UPLOAD_MAX_SIZE: ${UPLOAD_MAX_SIZE:-50mb}
-      UPLOAD_STRATEGY: ${UPLOAD_STRATEGY:-imagehost}
+      # 图片上传策略配置
+      IMAGE_UPLOAD_STRATEGY: ${IMAGE_UPLOAD_STRATEGY:-lskpro}
+      # 视频上传策略配置
+      VIDEO_UPLOAD_STRATEGY: ${VIDEO_UPLOAD_STRATEGY:-local}
+      # 本地存储配置
       LOCAL_UPLOAD_DIR: ${LOCAL_UPLOAD_DIR:-uploads}
       LOCAL_BASE_URL: ${LOCAL_BASE_URL:-http://localhost:3001}
-      IMAGEHOST_API_URL: ${IMAGEHOST_API_URL:-https://api.xinyew.cn/api/jdtc}
-      IMAGEHOST_TIMEOUT: ${IMAGEHOST_TIMEOUT:-60000}
+      # lskpro图床配置
+      LSKPRO_API_URL: ${LSKPRO_API_URL:-https://7bu.top/api/v1/upload}
+      LSKPRO_TOKEN: ${LSKPRO_TOKEN:-}
+      LSKPRO_TIMEOUT: ${LSKPRO_TIMEOUT:-60000}
+      LSKPRO_STRATEGY_ID: ${LSKPRO_STRATEGY_ID:-}
+      LSKPRO_ALBUM_ID: ${LSKPRO_ALBUM_ID:-}
+      LSKPRO_PERMISSION: ${LSKPRO_PERMISSION:-1}
+      # Cloudflare R2配置
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      R2_ENDPOINT: ${R2_ENDPOINT:-}
+      R2_BUCKET_NAME: ${R2_BUCKET_NAME:-}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
+      R2_REGION: ${R2_REGION:-auto}
+      R2_PUBLIC_URL: ${R2_PUBLIC_URL:-}
       TZ: Asia/Shanghai
     ports:
       - "3001:3001"

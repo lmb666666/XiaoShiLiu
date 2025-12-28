@@ -85,64 +85,110 @@ async function saveVideoToLocal(fileBuffer, filename) {
 }
 
 /**
- * 上传文件到图床
+ * 上传文件到 lskpro 图床 (7bu.top)
  * @param {Buffer} fileBuffer - 文件缓冲区
  * @param {string} filename - 文件名
  * @param {string} mimetype - 文件MIME类型
  * @returns {Promise<{success: boolean, url?: string, message?: string}>}
  */
-async function uploadToImageHost(fileBuffer, filename, mimetype) {
+async function uploadToLskpro(fileBuffer, filename, mimetype) {
   try {
+    const lskproConfig = config.upload.image.lskpro;
+    
     // 检查配置是否存在
-    if (!config.upload || !config.upload.image || !config.upload.image.imagehost || !config.upload.image.imagehost.apiUrl) {
-      console.error('❌ 图床配置不完整:', config.upload?.image?.imagehost);
+    if (!lskproConfig || !lskproConfig.apiUrl) {
+      console.error('❌ lskpro图床配置不完整:', lskproConfig);
       return {
         success: false,
-        message: '图床配置不完整，缺少apiUrl'
+        message: 'lskpro图床配置不完整，缺少apiUrl'
       };
     }
 
     // 构建multipart/form-data请求体
     const boundary = `----formdata-${Date.now()}`;
+    
+    // 构建表单数据
+    let formDataParts = [];
+    
+    // 添加文件字段
+    formDataParts.push(Buffer.from(`--${boundary}\r\n`));
+    formDataParts.push(Buffer.from(`Content-Disposition: form-data; name="file"; filename="${filename}"\r\n`));
+    formDataParts.push(Buffer.from(`Content-Type: ${mimetype}\r\n\r\n`));
+    formDataParts.push(fileBuffer);
+    formDataParts.push(Buffer.from('\r\n'));
+    
+    // 添加权限字段
+    if (lskproConfig.permission !== null && lskproConfig.permission !== undefined) {
+      formDataParts.push(Buffer.from(`--${boundary}\r\n`));
+      formDataParts.push(Buffer.from(`Content-Disposition: form-data; name="permission"\r\n\r\n`));
+      formDataParts.push(Buffer.from(`${lskproConfig.permission}\r\n`));
+    }
+    
+    // 添加储存策略ID字段（可选）
+    if (lskproConfig.strategyId) {
+      formDataParts.push(Buffer.from(`--${boundary}\r\n`));
+      formDataParts.push(Buffer.from(`Content-Disposition: form-data; name="strategy_id"\r\n\r\n`));
+      formDataParts.push(Buffer.from(`${lskproConfig.strategyId}\r\n`));
+    }
+    
+    // 添加相册ID字段（可选）
+    if (lskproConfig.albumId) {
+      formDataParts.push(Buffer.from(`--${boundary}\r\n`));
+      formDataParts.push(Buffer.from(`Content-Disposition: form-data; name="album_id"\r\n\r\n`));
+      formDataParts.push(Buffer.from(`${lskproConfig.albumId}\r\n`));
+    }
+    
+    // 结束边界
+    formDataParts.push(Buffer.from(`--${boundary}--\r\n`));
+    
+    const formDataBody = Buffer.concat(formDataParts);
 
-    const formDataBody = Buffer.concat([
-      Buffer.from(`--${boundary}\r\n`),
-      Buffer.from(`Content-Disposition: form-data; name="file"; filename="${filename}"\r\n`),
-      Buffer.from(`Content-Type: ${mimetype}\r\n\r\n`),
-      fileBuffer,
-      Buffer.from(`\r\n--${boundary}--\r\n`)
-    ]);
+    // 构建请求头
+    const headers = {
+      'Content-Type': `multipart/form-data; boundary=${boundary}`,
+      'Content-Length': formDataBody.length,
+      'Accept': 'application/json'
+    };
+    
+    // 如果配置了token，添加Authorization头
+    if (lskproConfig.token) {
+      headers['Authorization'] = `Bearer ${lskproConfig.token}`;
+    }
 
-    // 上传到图床
-    const response = await axios.post(config.upload.image.imagehost.apiUrl, formDataBody, {
-      headers: {
-        'Content-Type': `multipart/form-data; boundary=${boundary}`,
-        'Content-Length': formDataBody.length
-      },
-      timeout: config.upload.image.imagehost.timeout,
+    // 上传到lskpro图床
+    const response = await axios.post(lskproConfig.apiUrl, formDataBody, {
+      headers: headers,
+      timeout: lskproConfig.timeout,
       httpsAgent: new https.Agent({
         rejectUnauthorized: false
       })
     });
 
-    if (response.data && response.data.errno === 0 && response.data.data && response.data.data.url) {
-      const imageUrl = response.data.data.url.trim().replace(/\`/g, '').replace(/\s+/g, '');
+    // 解析响应
+    // lskpro API返回格式: { status: true/false, message: "...", data: { links: { url: "..." } } }
+    if (response.data && response.data.status === true && response.data.data && response.data.data.links && response.data.data.links.url) {
+      const imageUrl = response.data.data.links.url.trim();
+      console.log('✅ lskpro图床上传成功:', imageUrl);
       return {
         success: true,
         url: imageUrl
       };
     } else {
-      console.log('❌ 图床返回错误:', response.data);
+      console.log('❌ lskpro图床返回错误:', response.data);
       return {
         success: false,
-        message: '图床上传失败'
+        message: response.data?.message || 'lskpro图床上传失败'
       };
     }
   } catch (error) {
-    console.error('❌ 图床上传失败:', error.message);
+    console.error('❌ lskpro图床上传失败:', error.message);
+    if (error.response) {
+      console.error('响应状态:', error.response.status);
+      console.error('响应数据:', error.response.data);
+    }
     return {
       success: false,
-      message: error.message || '图床上传失败'
+      message: error.message ||'lskpro图床上传失败'
     };
   }
 }
@@ -170,8 +216,7 @@ async function uploadImageToR2(fileBuffer, filename, mimetype) {
       endpoint: r2Config.endpoint,
       credentials: {
         accessKeyId: r2Config.accessKeyId,
-        secretAccessKey: r2Config.secretAccessKey,
-      },
+        secretAccessKey: r2Config.secretAccessKey,},
     });
 
     // 生成唯一文件名
@@ -184,8 +229,7 @@ async function uploadImageToR2(fileBuffer, filename, mimetype) {
       Bucket: r2Config.bucketName,
       Key: uniqueFilename,
       Body: fileBuffer,
-      ContentType: mimetype,
-    };
+      ContentType: mimetype,};
 
     // 执行上传
     const command = new PutObjectCommand(uploadParams);
@@ -283,20 +327,20 @@ async function uploadVideoToR2(fileBuffer, filename, mimetype) {
 }
 
 /**
- * 从文件路径上传到图床
+ * 从文件路径上传到lskpro图床
  * @param {string} filePath - 文件路径
  * @param {string} originalname - 原始文件名
  * @param {string} mimetype - 文件MIME类型
  * @param {boolean} deleteAfterUpload - 上传后是否删除本地文件
  * @returns {Promise<{success: boolean, url?: string, message?: string}>}
  */
-async function uploadFileToImageHost(filePath, originalname, mimetype, deleteAfterUpload = true) {
+async function uploadFileToLskpro(filePath, originalname, mimetype, deleteAfterUpload = true) {
   try {
     // 读取文件
     const fileBuffer = fs.readFileSync(filePath);
     const filename = originalname || path.basename(filePath);
 
-    const result = await uploadToImageHost(fileBuffer, filename, mimetype);
+    const result = await uploadToLskpro(fileBuffer, filename, mimetype);
 
     // 上传成功后删除本地文件
     if (result.success && deleteAfterUpload && fs.existsSync(filePath)) {
@@ -346,13 +390,6 @@ function adminAuth(req, res, next) {
 }
 
 /**
- * 统一上传接口 - 根据配置选择上传策略
- * @param {Buffer} fileBuffer - 文件缓冲区
- * @param {string} filename - 文件名
- * @param {string} mimetype - 文件MIME类型
- * @returns {Promise<{success: boolean, url?: string, message?: string}>}
- */
-/**
  * 上传图片文件
  * @param {Buffer} fileBuffer - 文件缓冲区
  * @param {string} filename - 文件名
@@ -364,8 +401,8 @@ async function uploadImage(fileBuffer, filename, mimetype) {
   
   if (strategy === 'local') {
     return await saveImageToLocal(fileBuffer, filename);
-  } else if (strategy === 'imagehost') {
-    return await uploadToImageHost(fileBuffer, filename, mimetype);
+  } else if (strategy === 'lskpro') {
+    return await uploadToLskpro(fileBuffer, filename, mimetype);
   } else if (strategy === 'r2') {
     return await uploadImageToR2(fileBuffer, filename, mimetype);
   } else {
@@ -415,8 +452,8 @@ async function uploadFile(fileBuffer, filename, mimetype) {
 
 
 module.exports = {
-  uploadToImageHost,
-  uploadFileToImageHost,
+  uploadToLskpro,
+  uploadFileToLskpro,
   saveImageToLocal,
   saveVideoToLocal,
   uploadImageToR2,

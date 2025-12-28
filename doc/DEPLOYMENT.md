@@ -6,10 +6,10 @@
 
 ## 系统要求
 
-- **Docker 部署**：Docker 20.10+ 和 Docker Compose 2.0+
+- **Docker部署**：Docker 20.10+ 和 Docker Compose 2.0+
 - **传统部署**：Node.js 18+、MySQL 5.7+、npm 或 yarn
 
-> 💡 **宝塔面板部署**：如果您使用宝塔面板，可以参考这个详细的图文教程：[使用宝塔搭建小石榴图文社区完整教程](https://www.sakuraidc.cc/forum-post/3116.html)
+>💡 **宝塔面板部署**：如果您使用宝塔面板，可以参考这个详细的图文教程：[使用宝塔搭建小石榴图文社区完整教程](https://www.sakuraidc.cc/forum-post/3116.html)
 
 ---
 
@@ -46,8 +46,8 @@ REFRESH_TOKEN_EXPIRES_IN=30d
 
 # 上传配置
 UPLOAD_MAX_SIZE=50mb
-# 图片上传策略 (local: 本地存储, imagehost: 第三方图床, r2: Cloudflare R2)
-IMAGE_UPLOAD_STRATEGY=imagehost
+# 图片上传策略 (local: 本地存储, lskpro: lskpro图床, r2: Cloudflare R2)
+IMAGE_UPLOAD_STRATEGY=lskpro
 # 视频上传策略 (local: 本地存储, r2: Cloudflare R2)
 VIDEO_UPLOAD_STRATEGY=local
 
@@ -57,12 +57,16 @@ LOCAL_BASE_URL=http://localhost:3001
 VIDEO_UPLOAD_DIR=uploads/videos
 VIDEO_COVER_DIR=uploads/covers
 
-# 第三方图床配置（当IMAGE_UPLOAD_STRATEGY=imagehost时使用）
-IMAGEHOST_API_URL=https://api.xinyew.cn/api/jdtc
-IMAGEHOST_TIMEOUT=60000
+# lskpro图床配置（当IMAGE_UPLOAD_STRATEGY=lskpro时使用）
+LSKPRO_API_URL=https://7bu.top/api/v1/upload
+LSKPRO_TOKEN=your_lskpro_token_here
+LSKPRO_TIMEOUT=60000
+# LSKPRO_STRATEGY_ID=1
+# LSKPRO_ALBUM_ID=1
+LSKPRO_PERMISSION=1
 
 # Cloudflare R2 配置（当IMAGE_UPLOAD_STRATEGY=r2或VIDEO_UPLOAD_STRATEGY=r2时使用）
-# 如需使用R2存储，请取消注释并填入真实配置
+#如需使用R2存储，请取消注释并填入真实配置
 # R2_ACCESS_KEY_ID=your_r2_access_key_id_here
 # R2_SECRET_ACCESS_KEY=your_r2_secret_access_key_here
 # R2_ENDPOINT=https://your_account_id.r2.cloudflarestorage.com
@@ -75,7 +79,7 @@ IMAGEHOST_TIMEOUT=60000
 API_BASE_URL=http://localhost:3001
 
 # 邮件服务配置
-# 是否启用邮件功能 (true/false)，默认不启用
+#是否启用邮件功能 (true/false)，默认不启用
 EMAIL_ENABLED=false
 # SMTP服务器地址
 SMTP_HOST=smtp.qq.com
@@ -106,7 +110,7 @@ NODE_ENV=production
 
 ### 3. 启动服务
 
-使用 PowerShell 脚本（Windows 推荐）：
+使用 PowerShell 脚本（Windows推荐）：
 ```powershell
 # 基本启动
 .\deploy.ps1
@@ -207,26 +211,30 @@ API_BASE_URL=http://localhost:3001
 
 # 上传配置
 UPLOAD_MAX_SIZE=50mb
-# 图片上传策略 (local: 本地存储, imagehost: 第三方图床, r2: Cloudflare R2)
-UPLOAD_STRATEGY=imagehost
+# 图片上传策略 (local: 本地存储, lskpro: lskpro图床, r2: Cloudflare R2)
+IMAGE_UPLOAD_STRATEGY=lskpro
 
 # 本地存储配置
 LOCAL_UPLOAD_DIR=uploads
 LOCAL_BASE_URL=http://localhost:3001
 
-# 第三方图床配置（当UPLOAD_STRATEGY=imagehost时使用）
-IMAGEHOST_API_URL=https://api.xinyew.cn/api/jdtc
-IMAGEHOST_TIMEOUT=60000
+# lskpro图床配置（当IMAGE_UPLOAD_STRATEGY=lskpro时使用）
+LSKPRO_API_URL=https://7bu.top/api/v1/upload
+LSKPRO_TOKEN=your_lskpro_token_here
+LSKPRO_TIMEOUT=60000
+# LSKPRO_STRATEGY_ID=1
+# LSKPRO_ALBUM_ID=1
+LSKPRO_PERMISSION=1
 
-# Cloudflare R2 配置（当UPLOAD_STRATEGY=r2时使用）
-# 请从 Cloudflare 控制台获取您自己的配置信息
+# Cloudflare R2 配置（当IMAGE_UPLOAD_STRATEGY=r2时使用）
+# 请从Cloudflare 控制台获取您自己的配置信息
 R2_ACCESS_KEY_ID=your_r2_access_key_id_here
 R2_SECRET_ACCESS_KEY=your_r2_secret_access_key_here
 R2_ENDPOINT=https://your_account_id.r2.cloudflarestorage.com
 R2_BUCKET_NAME=your_bucket_name_here
 R2_ACCOUNT_ID=your_account_id_here
 R2_REGION=auto
-# 可选：如果有自定义域名，可以设置 R2_PUBLIC_URL
+#可选：如果有自定义域名，可以设置 R2_PUBLIC_URL
 # R2_PUBLIC_URL=https://your-custom-domain.com
 
 # CORS配置
@@ -331,9 +339,9 @@ XiaoShiLiu/
 │   ├── Dockerfile           # 前端Docker配置
 │   └── nginx.conf           # Nginx配置
 ├── docker-compose.yml       # Docker编排配置
-├── .env.docker             # Docker环境配置模板
-├── deploy.ps1              # Windows部署脚本
-└── doc/
+├── .env.docker# Docker环境配置模板
+├── deploy.ps1# Windows部署脚本
+└──doc/
     └── DEPLOYMENT.md       # 本文档
 ```
 
@@ -343,19 +351,32 @@ XiaoShiLiu/
 
 项目支持三种图片上传策略：
 
-1. **本地存储** (`UPLOAD_STRATEGY=local`)
+1. **本地存储** (`IMAGE_UPLOAD_STRATEGY=local`)
    ```env
    LOCAL_UPLOAD_DIR=uploads
    LOCAL_BASE_URL=http://localhost:3001
    ```
 
-2. **第三方图床** (`UPLOAD_STRATEGY=imagehost`)
+2. **lskpro图床** (`IMAGE_UPLOAD_STRATEGY=lskpro`)
+   
+   lskpro图床（7bu.top）是一个稳定的第三方图床服务，支持Bearer Token认证。
+   
    ```env
-   IMAGEHOST_API_URL=https://api.xinyew.cn/api/jdtc
-   IMAGEHOST_TIMEOUT=60000
+   # API地址
+   LSKPRO_API_URL=https://7bu.top/api/v1/upload
+   # 授权Token（从lskpro个人中心获取，不设置则为游客上传）
+   LSKPRO_TOKEN=your_token_here
+   # 请求超时时间（毫秒）
+   LSKPRO_TIMEOUT=60000
+   # 可选：储存策略ID
+   # LSKPRO_STRATEGY_ID=1
+   # 可选：相册ID
+   # LSKPRO_ALBUM_ID=1
+   # 权限：1=公开，0=私有
+   LSKPRO_PERMISSION=1
    ```
 
-3. **Cloudflare R2** (`UPLOAD_STRATEGY=r2`)
+3. **Cloudflare R2** (`IMAGE_UPLOAD_STRATEGY=r2`)
    ```env
    R2_ACCESS_KEY_ID=your_access_key
    R2_SECRET_ACCESS_KEY=your_secret_key
@@ -365,13 +386,21 @@ XiaoShiLiu/
    R2_REGION=auto
    ```
 
+### lskpro图床配置步骤
+
+1. 访问 [7bu.top](https://7bu.top) 注册账号
+2. 登录后进入个人中心
+3. 获取API Token
+4. 在 `.env` 文件中配置 `LSKPRO_TOKEN`
+5. 可选：配置储存策略ID和相册ID
+
 ### Cloudflare R2 配置步骤
 
 1. 登录 Cloudflare 控制台
 2. 进入 R2 Object Storage
 3. 创建存储桶
 4. 生成 API 令牌（权限：R2:Edit）
-5. 获取账户 ID
+5. 获取账户ID
 6. 配置环境变量
 
 ### 邮件功能配置
@@ -458,8 +487,7 @@ server {
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-        proxy_set_header X-Real-IP $remote_addr;
+        proxy_cache_bypass $http_upgrade;proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
@@ -517,11 +545,24 @@ server {
    npm install
    ```
 
+### 图片上传问题
+
+1. **lskpro图床上传失败**
+   - 检查 `LSKPRO_TOKEN` 是否正确配置
+   - 确认Token是否过期
+   - 检查网络连接是否正常
+   - 查看后端日志获取详细错误信息
+
+2. **上传返回400错误**
+   - 检查文件格式是否支持（jpg, jpeg, png, gif, webp）
+   - 确认文件大小未超过限制（默认5MB）
+   - 验证图床服务是否正常
+
 ## 📝 注意事项
 
 1. **生产环境部署**：
    - 修改默认密码和密钥
-   - 配置 HTTPS
+   - 配置HTTPS
    - 设置防火墙规则
    - 定期备份数据
 
@@ -534,5 +575,6 @@ server {
    - 不要将 `.env` 文件提交到版本控制
    - 定期更新依赖包
    - 使用强密码策略
+   - 妥善保管图床Token
 
 **祝您部署顺利！** 🎉

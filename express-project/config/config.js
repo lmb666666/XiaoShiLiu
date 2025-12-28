@@ -44,16 +44,20 @@ const config = {
       maxSize: process.env.IMAGE_MAX_SIZE || '10mb',
       allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
       // 图片上传策略配置
-      strategy: process.env.IMAGE_UPLOAD_STRATEGY || 'imagehost', // 'local', 'imagehost' 或 'r2'
+      strategy: process.env.IMAGE_UPLOAD_STRATEGY || 'lskpro', // 'local', 'lskpro' 或 'r2'
       // 本地存储配置
       local: {
         uploadDir: process.env.IMAGE_LOCAL_UPLOAD_DIR || 'uploads/images',
         baseUrl: process.env.LOCAL_BASE_URL || 'http://localhost:3001'
       },
-      // 第三方图床配置
-      imagehost: {
-        apiUrl: process.env.IMAGEHOST_API_URL || 'https://api.xinyew.cn/api/jdtc',
-        timeout: parseInt(process.env.IMAGEHOST_TIMEOUT) || 60000
+      // lskpro图床配置 (7bu.top)
+      lskpro: {
+        apiUrl: process.env.LSKPRO_API_URL || 'https://7bu.top/api/v1/upload',
+        token: process.env.LSKPRO_TOKEN || '',
+        timeout: parseInt(process.env.LSKPRO_TIMEOUT) || 60000,
+        strategyId: process.env.LSKPRO_STRATEGY_ID ? parseInt(process.env.LSKPRO_STRATEGY_ID) : null, // 可选：储存策略ID
+        albumId: process.env.LSKPRO_ALBUM_ID ? parseInt(process.env.LSKPRO_ALBUM_ID) : null, // 可选：相册ID
+        permission: process.env.LSKPRO_PERMISSION ? parseInt(process.env.LSKPRO_PERMISSION) : 1 // 权限：1=公开，0=私有
       },
       // Cloudflare R2配置
       r2: {
@@ -104,7 +108,7 @@ const config = {
 
   // 缓存配置
   cache: {
-    ttl: 300 // 5分钟
+    ttl: 300// 5分钟
   },
 
   // 邮件服务配置
